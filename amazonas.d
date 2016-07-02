@@ -4,19 +4,18 @@ import std.traits;
 import std.stdio;
 
 struct Amazonas {
-	enum Player {
+	enum Player : byte {
 		white = 0,
 		black
 	}
-	enum Piece {
+	enum Piece : byte {
 		free = -1,
 
 		white = 0,  // Matches player enum!
 		black = 1,
 
-		whiteArrow = 2,
-		blackArrow = 3,
-
+		whiteArrow,
+		blackArrow,
 	}
 	static string toString(Piece p) {
 		final switch(p) {
@@ -82,8 +81,8 @@ struct Amazonas {
 		amazonas[p][i] = goal;
 		// Update board
 		board[start.y][start.x] = Piece.free;
-		board[goal.y][goal.x]   = cast(Piece)(p);
-		board[arrow.y][arrow.x] = cast(Piece)(p+2);
+		board[ goal.y][ goal.x] = cast(Piece)(p);
+		board[arrow.y][arrow.x] = cast(Piece)(p+2); // Gets the player's arrow
 	}
 
 	auto ref moves(Player p) {
@@ -116,7 +115,7 @@ int main() {
 	a.start();
 
 	foreach(m; a.moves(Amazonas.Player.white)) {
-		m.print();
+		//m.print();
 	}
 
 	return 0;
