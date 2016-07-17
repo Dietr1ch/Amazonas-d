@@ -6,13 +6,13 @@ import std.stdio;
 struct Amazonas {
 	enum Player : byte {
 		white = 0,
-		black
+		black,
 	}
 	enum Piece : byte {
 		free = -1,
 
 		white = 0,  // Matches player enum!
-		black = 1,
+		black,
 
 		whiteArrow,
 		blackArrow,
@@ -31,7 +31,11 @@ struct Amazonas {
 	struct Position {
 		auto x = 0;
 		auto y = 0;
-		bool translate(Position p) {
+
+		/**
+		 * Translates the position by `p` and checks bounds
+		 */
+		bool translate(const ref Position p) {
 			x += p.x;
 			y += p.y;
 			return 0 <= x  &&  x < 10  &&
@@ -69,38 +73,47 @@ struct Amazonas {
 		}
 	}
 
-	void move(Player p, int i,
-		        Position start,
-		        Position goal,
-		        Position arrow) {
-		assert(amazonas[p][i]==start, "Wrong amazona");
-		assert(goal!=start, "Start should be different than the goal");
-		assert(goal!=arrow, "Target should be different than the goal");
+	struct Move {
+		Player p;
+		size_t amazonaID;
+		Position start;
+		Position goal;
+		Position arrow;
+
+		@property
+		pure bool valid() const {
+		  return start != goal &&
+		         goal  != arrow;
+		}
+	}
+
+	void move(Player p, const ref Move m) {
+		assert(p==m.p, "Wrong player");
+		assert(amazonas[m.p][m.amazonaID]==m.start, "Wrong amazona");
+		assert(m.valid, "Move must be valid");
 
 		// Move piece
-		amazonas[p][i] = goal;
+		amazonas[m.p][m.amazonaID] = m.goal;
 		// Update board
-		board[start.y][start.x] = Piece.free;
-		board[ goal.y][ goal.x] = cast(Piece)(p);
-		board[arrow.y][arrow.x] = cast(Piece)(p+2); // Gets the player's arrow
+		board[m.start.y][m.start.x] = Piece.free;
+		board[m. goal.y][m. goal.x] = cast(Piece)(m.p);
+		board[m.arrow.y][m.arrow.x] = cast(Piece)(m.p+2); // Gets the player's arrow
 	}
 
 	auto ref moves(Player p) {
-		Amazonas[] moves;  // At most 5184
+		Move[] moves;  // At most 5184
 
-		foreach(a_i, a; amazonas[p]) {
+		foreach(a_i, a; amazonas[p]) {  // Pick amazona
 			Position start = a;
 
-			foreach(d; Amazonas.directions) {
+			foreach(d; Amazonas.directions) {  // Pick Move direction
 				Position goal = start;
 				while(goal.translate(d) && board[goal.y][goal.x]==Piece.free)
-					foreach(da; Amazonas.directions) {
+					foreach(da; Amazonas.directions) {  // Pick Arrow direction
 						Position target = goal;
 
-						while(target.translate(da) && board[target.y][target.x]==Piece.free) {
-							moves ~= Amazonas(this);
-							moves[$-1].move(p, a_i, start, goal, target);
-						}
+						while(target.translate(da) && board[target.y][target.x]==Piece.free)
+							moves ~= Move(p, a_i, start, goal, target);
 					}
 			}
 		}
@@ -115,7 +128,10 @@ int main() {
 	a.start();
 
 	foreach(m; a.moves(Amazonas.Player.white)) {
-		//m.print();
+		Amazonas t = Amazonas(a);
+		t.move(Amazonas.Player.white, m);
+		t.print();
+		writeln();
 	}
 
 	return 0;
