@@ -1,6 +1,6 @@
 
 
 compile:
-	ldc -O4 -of=amazonas-ldc  amazonas.d
+	ldc -O4 -of=server-ldc server.d amazonas.d
 clean:
 	rm *.o
